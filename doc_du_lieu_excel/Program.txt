@@ -1,0 +1,125 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;//Thư viện Threading
+
+namespace doc_du_lieu_excel
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            List<label> listLabel = new List<label>();
+            string dataAddress = @"C:\Users\trinh\OneDrive\Desktop\golddata.csv";
+            //doc du lieu
+            //khai bao reader doc du lieu
+            List<float> getData(string csvFileAddress)
+            {
+                using (var reader = new StreamReader(csvFileAddress))
+                {
+
+                    List<string> listA = new List<string>();
+                    //doc tung dong toan bo file
+                    //can them 1 dong co gia tri bang dong cuoi
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine();
+                        listA.Add(line);
+                    }
+
+                    List<float> data = new List<float>();
+                    //chuyen list string thanh list float cho de tinh
+                    data = listA.Select(x => float.Parse(x)).ToList();
+
+                    return data;
+                }
+            }
+            List<label> getLabel(List<float> data)
+            {
+                //duyet toan bo list data
+
+                for (int i = 0; i < data.Count - 1; i++)
+                {
+                    int j = i;
+                    List<float> stack = new List<float>();
+                    //cho du lieu dau tien vao stack
+                    stack.Add(data[j]);
+                    //kiem tra trang thai cua du lieu hien tai
+                    //neu du lieu trang thai dang tang thi duyet tiep den khi trang thai thay doi
+                    if (data[j] < data[j + 1])
+                    {
+                        while (data[j] < data[j + 1])
+                        {
+                            j++;
+                            if (j == data.Count - 1)
+                            {
+                                break;
+                            }
+                            stack.Add(data[j]);
+                        }
+                    }
+                    else
+                    {
+                        while (data[j] >= data[j + 1])
+                        {
+                            j++;
+                            if (j == data.Count - 1)
+                            {
+                                break;
+                            }
+                            stack.Add(data[j]);
+                        }
+                    }
+                    //tinh do lech cua gia tri dau va gia tri cuoi
+                    //neu delta > 0 thi du lieu tang
+                    float delta = stack[stack.Count - 1] - stack[0];
+
+                    if (delta > 0)
+                    {
+                        label l = new label(2, stack.Count, delta);
+                        listLabel.Add(l);
+                    }
+                    else
+                    {
+                        label l = new label(1, stack.Count, -delta);
+                        listLabel.Add(l);
+                    }
+                }
+                //foreach (label l in listLabel)
+                //{
+                //    l.println();
+                //}
+                return listLabel;
+            }
+            //ghi label
+            void ghiLabel(List<label> listLabel)
+            {
+                using (var writer = new StreamWriter(@"C:\Users\trinh\OneDrive\Desktop\goldlabel.csv"))
+                {
+                    List<string> listA = new List<string>();
+                    listA = listLabel.Select(x => x.toString()).ToList();
+                    for (int i = 0; i < listA.Count; i++)
+                    {
+                        writer.Write(listA[i] + "\n");
+                    }
+                }
+            }
+            List<float> data = getData(dataAddress);
+            listLabel = getLabel(data);
+            foreach (label l in listLabel)
+            {
+                l.println();
+            }
+            ghiLabel(listLabel);
+            //thong ke
+            //void thongke()
+            //{
+
+            //}
+        }
+    }
+} 
