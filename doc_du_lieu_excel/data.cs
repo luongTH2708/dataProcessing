@@ -8,14 +8,14 @@ namespace doc_du_lieu_excel
     {
         List<float> goldPrice;
         label label;
+
         public data() { }
         public data(List<float> goldPrice, label label)
         {
             this.goldPrice = goldPrice;
             this.label = label;
         }
-        public List<float> GoldPrice { get => goldPrice; set => goldPrice = value; }
+        public List<float> GoldPrice { get => goldPrice; set => goldPrice }
         public label Label { get => label; set => label = value; }
-        
     }
 }

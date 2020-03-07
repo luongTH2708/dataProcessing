@@ -181,8 +181,16 @@ namespace doc_du_lieu_excel
                         writer.Write(str + "\n");
                     }
                 }
-            } 
-                
+            }
+        }
+        static List<float> ScalePrice(data priceList,int range)
+        {
+            List<float> priceScale = new List<float>();
+            foreach(float p in priceList.GoldPrice)
+            {
+                priceScale.Add((range * p) / priceList.Label.MaxPrice);
+            }
+            return priceScale;
         }
         static void Main(string[] args)
         {
