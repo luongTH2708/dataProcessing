@@ -12,12 +12,25 @@ namespace doc_du_lieu_excel
         static float maxDelta;
         static int maxTimes;
         static float maxPrice;
+        static float minPrice = 0;
+
         
         static void setMaxPrice(float price)
         {
-            if(price > maxPrice)
+            if (price > maxPrice)
             {
                 maxPrice = price;
+            }
+            if (minPrice == 0)
+            {
+                minPrice = price;
+            }
+            else
+            {
+                if (price < minPrice)
+                {
+                    minPrice = price;
+                }
             }
         }
 
@@ -36,7 +49,7 @@ namespace doc_du_lieu_excel
             }
         }
 
-        static void setMaxLabel(float price, float insertedDelta, int insertedTimes)
+        static void setLabel(float price, float insertedDelta, int insertedTimes)
         {
             setMaxPrice(price);
             setMaxDelta(insertedDelta);
@@ -52,18 +65,37 @@ namespace doc_du_lieu_excel
             this.times = times;
             setMaxTimes(times);
         }
-        void SetPrice(float price) { this.price = price; setMaxPrice(price); }
+        void SetPrice(float price) 
+        { 
+            this.price = price;
+            if (price > maxPrice)
+            {
+                maxPrice = price;
+            }
+            if (minPrice == 0)
+            {
+                minPrice = price;
+            }
+            else
+            {
+                if (price < minPrice)
+                {
+                    minPrice = price;
+                }
+            }
+        }
 
         public float MaxDelta{ get => maxDelta; }
         public int MaxTimes{ get => maxTimes; }
-        public float MaxPrice { get => maxPrice}
+        public float MaxPrice { get => maxPrice; }
+        public float MinPrice { get => minPrice; }
         public label() { }
         public label(int status, int times, float delta)
         {
             this.status = status;
             this.times = times;
             this.delta = delta;
-            setMaxLabel(price, delta, times);
+            setLabel(price, delta, times);
         }
 
         public label(float price, int status, int times, float delta)
@@ -72,13 +104,13 @@ namespace doc_du_lieu_excel
             this.status = status;
             this.times = times;
             this.delta = delta;
-            setMaxLabel(price,delta, times);
+            setLabel(price,delta, times);
         }
 
         public int Status { get => status; set => status = value; }
         public int Times { get => times; set => SetTimes(value); }
         public float Delta { get => delta; set => SetDelta(value); }
-        public float Price { get => price; set => setMaxPrice(value); }
+        public float Price { get => price; set => SetPrice(value); }
 
         public string toString()
         {

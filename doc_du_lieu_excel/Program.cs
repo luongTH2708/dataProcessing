@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -128,8 +130,8 @@ namespace doc_du_lieu_excel
             }
             return dl;
         }
-        //get label 0
-        static List<data> GetLabelListByStatus(List<data> datas,int status)
+
+        static List<data> GetDataListByStatus(List<data> datas,int status)
         {
             List<data> labelList = new List<data>();
             foreach(data d in datas)
@@ -139,58 +141,113 @@ namespace doc_du_lieu_excel
             }
             return labelList;
         }
+        public static void SaveToPngImage(string filePath, data d, int range)
+        {
 
-        static void createFile(string pathString)
-        {
-            // Check that the file doesn't already exist. If it doesn't exist, create
-            if (!System.IO.File.Exists(pathString))
+            List<float> priceList = d.GoldPrice;
+
+            //scaling price list into range
+            int scaleRange = range - 1;
+            List<int> price = new List<int>();
+            float max = 0;
+            float min = 0;
+            foreach (float p in priceList)
             {
-                System.IO.File.Create(pathString);
+                if (min == 0) min = p;
+                else if (p < min) min = p;
+                if (p > max) max = p;
             }
-            else
+            //range = a*max +b;
+            //0 = a*min +b;
+            //range = a *(max - min);
+            float alpha, beta;
+            alpha = scaleRange / (max - min);
+            beta = -alpha * min;
+            foreach (float p in priceList)
             {
-                Console.WriteLine("File \"{0}\" already exists.", pathString);
-                return;
+                price.Add(Convert.ToInt32(p * alpha + beta));
             }
-        }        //ghi label: dua vao listLabel, ghi ra file CSV
-        static void ghiLabel(List<label> listLabel)
-        {
-            using (var writer = new StreamWriter(@"C:\Users\trinh\OneDrive\Desktop\goldlabel.csv"))
+
+            int[,] a = new int[range, range];
+            Array.Clear(a, 0, a.Length);
+            for (int i = 0; i < price.Count; i++)
             {
-                List<string> listA = new List<string>();
-                listA = listLabel.Select(x => x.toString()).ToList();
-                for (int i = 0; i < listA.Count; i++)
+                int j = 0;
+                while (j <= price[i])
                 {
-                    writer.Write(listA[i] + "\n");
+                    a[j, i] = 255;
+                    j++;
                 }
             }
-        }
-        static void createFileData(string folderName,List<data> dataProcess,int classes)
-        {
-            System.IO.Directory.CreateDirectory(folderName);
-            for(int i = 0; i < classes; i++)
+
+            //convert price list of data to byte image
+            byte[] data = new byte[range * range];
+            int index = 0;
+            for (int r = 19; r >= 0; r--)
             {
-                string fileName = folderName + i + ".csv";
-                createFile(fileName);
-                List<data> dl = new List<data>(GetLabelListByStatus(dataProcess, i));
-                using (var writer = new StreamWriter(fileName))
+                for (int c = 0; c < 20; c++)
                 {
+                    data[index] = byte.Parse(a[r, c].ToString());
+                    index++;
+                }
+            }
+
+            int width, height;
+            width = height = range;
+            if (width * height != data.Length)
+                throw new FormatException("Size does not match");
+
+            Bitmap bmp = new Bitmap(width, height);
+
+            for (int r = 0; r < height; r++)
+            {
+                for (int c = 0; c < width; c++)
+                {
+                    byte value = data[r * width + c];
+                    bmp.SetPixel(c, r, Color.FromArgb(value, value, value));
+                }
+            }
+
+            bmp.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
+        }
+        static void DataInitialization(string dataPath, List<data> dataList,int classes, int range)
+        {
+            for (int i = 1; i <= 10; i++)
+            {
+                List<data> processedData = new List<data>(DataProcessing(dataList, i * 10));
+
+                //create folder to store each percent data
+
+                string folderPath = dataPath + @"Data\" + (i * 10) + @"%";
+                System.IO.Directory.CreateDirectory(folderPath);
+
+                //debug
+                Console.WriteLine("\ncreate folder: {0}\n", folderPath);
+
+                //processing data
+                for (int c = 0; c < classes; c++)
+                {
+                    //create classes folder in each percent folder
+                    string classesFolderPath = folderPath + @"\" + c;
+                    System.IO.Directory.CreateDirectory(classesFolderPath);
+
+                    //get data list in a class
+                    List<data> dl = new List<data>(GetDataListByStatus(processedData, c));
+                    int imageIndex = 0;
+                    
+                    //save data as an image in each classes folder
                     foreach (data d in dl)
                     {
-                        string str = string.Join("; ", d.GoldPrice);
-                        writer.Write(str + "\n");
+                        //convert data to byte
+                        string filePath = classesFolderPath + @"\" + imageIndex + ".png";
+                        SaveToPngImage(filePath, d, range);
+                        imageIndex++;
                     }
+
+                    //debug
+                    Console.WriteLine("class: {0} --- data in class: {1}\n", c, imageIndex);
                 }
             }
-        }
-        static List<float> ScalePrice(data priceList,int range)
-        {
-            List<float> priceScale = new List<float>();
-            foreach(float p in priceList.GoldPrice)
-            {
-                priceScale.Add((range * p) / priceList.Label.MaxPrice);
-            }
-            return priceScale;
         }
         static void Main(string[] args)
         {
@@ -199,13 +256,21 @@ namespace doc_du_lieu_excel
             List<float> oData = GetData(dataPath+fileName);
             List<label> labelList = new List<label>(GetLabel(oData));
             List<data> dataList = new List<data>(LabelProcessing(labelList));
-            float maxDelta = dataList[0].Label.MaxDelta;
-            for (int i = 1; i <= 10; i++)
-            {
-                List<data> dataProcess = new List<data>(DataProcessing(dataList, i * 10));
-                createFileData(dataPath + @"Data\" + i + @"\", dataProcess,3);
-                //Console.WriteLine("test percent: {0}% of max: {4}\nN0: {1}\nN1:{2}\nN2:{3}\n", i * 10, data0.Count, data1.Count, data2.Count, maxDelta * (i * 0.1));
-            }
+            DataInitialization(dataPath, dataList, 3, 20);
+            //---------------------------------------------TESTING-HERE----------------------------------------------------------------------------------------------
+
+            //float maxDelta = dataList[0].Label.MaxDelta;
+            //List<int> price = ScalePrice(dataList[0],20);
+            //int[,] a = convertImage(price);
+            //for (int i = 19; i >= 0; i--)
+            //{
+            //    for (int k = 0; k <= 19; k++)
+            //    {
+            //        Console.Write("{0} ", a[i, k]);
+            //    }
+            //    Console.Write("\n");
+            //}
+
         }
     }
 } 

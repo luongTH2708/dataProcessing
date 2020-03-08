@@ -15,7 +15,7 @@ namespace doc_du_lieu_excel
             this.goldPrice = goldPrice;
             this.label = label;
         }
-        public List<float> GoldPrice { get => goldPrice; set => goldPrice }
+        public List<float> GoldPrice { get => goldPrice; set => goldPrice = value; }
         public label Label { get => label; set => label = value; }
     }
 }
