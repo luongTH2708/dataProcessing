@@ -212,44 +212,45 @@ namespace doc_du_lieu_excel
         }
 
 
-        static void DataInitialization(string dataPath, List<data> dataList,int classes)
-        {
-            for (int i = 1; i <= 10; i++)
-            {
-                List<data> processedData = new List<data>(DataProcessing(dataList, i * 10));
+        //there are some bugs here, updated patch is comming soon because i'm lazy
+        //static void DataInitialization(string dataPath, List<data> dataList,int classes)
+        //{
+        //    for (int i = 1; i <= 10; i++)
+        //    {
+        //        List<data> processedData = new List<data>(DataProcessing(dataList, i * 10));
 
-                //create folder to store each percent data
+        //        //create folder to store each percent data
 
-                string folderPath = dataPath + @"Data\" + (i * 10) + @"%";
-                System.IO.Directory.CreateDirectory(folderPath);
+        //        string folderPath = dataPath + @"Data\" + (i * 10) + @"%";
+        //        System.IO.Directory.CreateDirectory(folderPath);
 
-                //debug
-                Console.WriteLine("\ncreate folder: {0}\n", folderPath);
-                //processing data
-                for (int c = 0; c < classes; c++)
-                {
-                    //create classes folder in each percent folder
-                    string classesFolderPath = folderPath + @"\" + c;
-                    System.IO.Directory.CreateDirectory(classesFolderPath);
+        //        //debug
+        //        Console.WriteLine("\ncreate folder: {0}\n", folderPath);
+        //        //processing data
+        //        for (int c = 0; c < classes; c++)
+        //        {
+        //            //create classes folder in each percent folder
+        //            string classesFolderPath = folderPath + @"\" + c;
+        //            System.IO.Directory.CreateDirectory(classesFolderPath);
 
-                    //get data list in a class
-                    List<data> dl = new List<data>(GetDataListByClass(processedData, c));
-                    int imageIndex = 0;
-                    
-                    //save data as an image in each classes folder
-                    foreach (data d in dl)
-                    {
-                        //convert data to byte
-                        string filePath = classesFolderPath + @"\" + imageIndex + ".png";
-                        SaveToPngImage(filePath, d, d.GoldPrice.Count);
-                        imageIndex++;
-                    }
+        //            //get data list in a class
+        //            List<data> dl = new List<data>(GetDataListByClass(processedData, c));
+        //            int imageIndex = 0;
 
-                    //debug
-                    Console.WriteLine("class: {0} --- data in class: {1}\n", c, imageIndex);
-                }
-            }
-        }
+        //            //save data as an image in each classes folder
+        //            foreach (data d in dl)
+        //            {
+        //                //convert data to byte
+        //                string filePath = classesFolderPath + @"\" + imageIndex + ".png";
+        //                SaveToPngImage(filePath, d, d.GoldPrice.Count);
+        //                imageIndex++;
+        //            }
+
+        //            //debug
+        //            Console.WriteLine("class: {0} --- data in class: {1}\n", c, imageIndex);
+        //        }
+        //    }
+        //}
 
         static void AppendToFile(string csvFileAddress, string classId, string fileName)
         {
