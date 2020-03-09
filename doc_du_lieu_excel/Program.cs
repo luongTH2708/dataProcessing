@@ -261,9 +261,8 @@ namespace doc_du_lieu_excel
                 }
             }
         }
-        static void DataInitializationForTest(List<data> dataList)
+        static void DataInitializationForTest(List<data> processedData)
         {
-            List<data> processedData = new List<data>(DataProcessing(dataList, 10));
 
             //create folder to store each percent data
 
@@ -313,6 +312,7 @@ namespace doc_du_lieu_excel
             List<label> labelList = new List<label>(GetLabel(oData));
             List<data> dataList = new List<data>(LabelProcessing(labelList));
 
+            List<data> processedData = new List<data>(DataProcessing(dataList, 10));
             DataInitializationForTest(dataList);
             //DataInitialization(dataPath, dataList, 3);
             //---------------------------------------------TESTING-HERE----------------------------------------------------------------------------------------------
