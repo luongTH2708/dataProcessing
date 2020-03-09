@@ -34,7 +34,7 @@ namespace doc_du_lieu_excel
 
                 return oData;
             }
-        }            //them 1 label vao label list
+        }            
         static bool isIncrease(float delta)
         {
             //neu delta > 0 thi du lieu tang status = 2 va nguoc lai status = 1
@@ -131,7 +131,7 @@ namespace doc_du_lieu_excel
             return dl;
         }
 
-        static List<data> GetDataListByStatus(List<data> datas,int status)
+        static List<data> GetDataListByClass(List<data> datas,int status)
         {
             List<data> labelList = new List<data>();
             foreach(data d in datas)
@@ -210,7 +210,9 @@ namespace doc_du_lieu_excel
 
             bmp.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
         }
-        static void DataInitialization(string dataPath, List<data> dataList,int classes, int range)
+
+
+        static void DataInitialization(string dataPath, List<data> dataList,int classes)
         {
             for (int i = 1; i <= 10; i++)
             {
@@ -223,7 +225,6 @@ namespace doc_du_lieu_excel
 
                 //debug
                 Console.WriteLine("\ncreate folder: {0}\n", folderPath);
-
                 //processing data
                 for (int c = 0; c < classes; c++)
                 {
@@ -232,7 +233,7 @@ namespace doc_du_lieu_excel
                     System.IO.Directory.CreateDirectory(classesFolderPath);
 
                     //get data list in a class
-                    List<data> dl = new List<data>(GetDataListByStatus(processedData, c));
+                    List<data> dl = new List<data>(GetDataListByClass(processedData, c));
                     int imageIndex = 0;
                     
                     //save data as an image in each classes folder
@@ -240,7 +241,7 @@ namespace doc_du_lieu_excel
                     {
                         //convert data to byte
                         string filePath = classesFolderPath + @"\" + imageIndex + ".png";
-                        SaveToPngImage(filePath, d, range);
+                        SaveToPngImage(filePath, d, d.GoldPrice.Count);
                         imageIndex++;
                     }
 
@@ -249,14 +250,71 @@ namespace doc_du_lieu_excel
                 }
             }
         }
+
+        static void AppendToFile(string csvFileAddress, string classId, string fileName)
+        {
+            using (FileStream fileStream = new FileStream(csvFileAddress, FileMode.Append, FileAccess.Write))
+            {
+                using (StreamWriter writer = new StreamWriter(fileStream))
+                {
+                    writer.WriteLine(20 + ", " + 20 + ", " + 0 + ", " + 0 + ", " + 20 + ", " + 20 + ", " + classId + ", "+ fileName);
+                }
+            }
+        }
+        static void DataInitializationForTest(List<data> dataList)
+        {
+            List<data> processedData = new List<data>(DataProcessing(dataList, 10));
+
+            //create folder to store each percent data
+
+            string folderTrainPath = @"C:\Users\trinh\OneDrive\Documents\bienbao\input\Train";
+            string folderTestPath = @"C:\Users\trinh\OneDrive\Documents\bienbao\input\Test";
+            string fileTestCSVPath = @"C:\Users\trinh\OneDrive\Documents\bienbao\input\test2.csv";
+            //processing data
+            for (int c = 0; c < 3; c++)
+            {
+                //create classes folder in each percent folder
+                string classesFolderPath = folderTrainPath + @"\" + c;
+                System.IO.Directory.CreateDirectory(classesFolderPath);
+
+                //get data list in a class
+                List<data> dl = new List<data>(GetDataListByClass(processedData, c));
+                int imageIndex = 0;
+                int testImgIndex = 0;
+                //save data as an image in each classes folder
+                foreach (data d in dl)
+                {
+                    //convert data to byte
+                    string filePath = classesFolderPath + @"\" + imageIndex + ".png"; //file to save image
+                    if (imageIndex < dl.Count * 0.9)
+                        SaveToPngImage(filePath, d, d.GoldPrice.Count);
+                    else
+                    {
+                        string[] dir = System.IO.Directory.GetFiles(folderTestPath);
+                        testImgIndex = dir.Count();
+                        filePath = folderTestPath + @"\" + testImgIndex + ".png"; //file to save image
+                        SaveToPngImage(filePath, d, d.GoldPrice.Count);
+                        AppendToFile(fileTestCSVPath, c+"","Test/" + testImgIndex+".png");
+                        testImgIndex++;
+                    }
+                    imageIndex++;
+                }
+
+                //debug
+                Console.WriteLine("class: {0} --- data in class: {1}\n", c, imageIndex);
+            }
+
+        }
         static void Main(string[] args)
         {
             string dataPath = @"C:\Users\trinh\OneDrive\Desktop\";
             string fileName = "golddata.csv";
-            List<float> oData = GetData(dataPath+fileName);
+            List<float> oData = GetData(dataPath + fileName);
             List<label> labelList = new List<label>(GetLabel(oData));
             List<data> dataList = new List<data>(LabelProcessing(labelList));
-            DataInitialization(dataPath, dataList, 3, 20);
+
+            DataInitializationForTest(dataList);
+            //DataInitialization(dataPath, dataList, 3);
             //---------------------------------------------TESTING-HERE----------------------------------------------------------------------------------------------
 
             //float maxDelta = dataList[0].Label.MaxDelta;
