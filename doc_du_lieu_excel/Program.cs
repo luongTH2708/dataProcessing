@@ -134,10 +134,21 @@ namespace doc_du_lieu_excel
         static List<data> GetDataListByClass(List<data> datas,int status)
         {
             List<data> labelList = new List<data>();
+            int i = 0;
             foreach(data d in datas)
             {
-                if (d.Label.Status == status)
-                    labelList.Add(d);
+                if (d.Label.Status == status && status == 0)
+                {
+                    if( i < 1500)
+                    {
+                        labelList.Add(d);
+                        i++;
+                    }
+                        
+                }
+                else
+                    if (d.Label.Status == status)
+                        labelList.Add(d);
             }
             return labelList;
         }
@@ -279,24 +290,44 @@ namespace doc_du_lieu_excel
 
                 //get data list in a class
                 List<data> dl = new List<data>(GetDataListByClass(processedData, c));
+                
                 int imageIndex = 0;
                 int testImgIndex = 0;
                 //save data as an image in each classes folder
+                //bool done = false;
+
                 foreach (data d in dl)
                 {
                     //convert data to byte
                     string filePath = classesFolderPath + @"\" + imageIndex + ".png"; //file to save image
                     if (imageIndex < dl.Count * 0.9)
                         SaveToPngImage(filePath, d, d.GoldPrice.Count);
-                    else
+                    else 
                     {
-                        string[] dir = System.IO.Directory.GetFiles(folderTestPath);
-                        testImgIndex = dir.Count();
-                        filePath = folderTestPath + @"\" + testImgIndex + ".png"; //file to save image
-                        SaveToPngImage(filePath, d, d.GoldPrice.Count);
-                        AppendToFile(fileTestCSVPath, c+"","Test/" + testImgIndex+".png");
-                        testImgIndex++;
+                        if (c == 0 && testImgIndex > 60)
+                            continue;
+                        else
+                        {
+                            string[] dir = System.IO.Directory.GetFiles(folderTestPath);
+                            testImgIndex = dir.Count();
+                            filePath = folderTestPath + @"\" + testImgIndex + ".png"; //file to save image
+                            SaveToPngImage(filePath, d, d.GoldPrice.Count);
+                            AppendToFile(fileTestCSVPath, c + "", "Test/" + testImgIndex + ".png");
+                            testImgIndex++;
+
+                        }
+                        
                     }
+                    //else if (c == 0)
+                    //{
+                    //    string[] dir = System.IO.Directory.GetFiles(folderTestPath);
+                    //    testImgIndex = dir.Count();
+                    //    filePath = folderTestPath + @"\" + testImgIndex + ".png"; //file to save image
+                    //    SaveToPngImage(filePath, d, d.GoldPrice.Count);
+                    //    AppendToFile(fileTestCSVPath, c + "", "Test/" + testImgIndex + ".png");
+                    //    testImgIndex++;
+                    //    //done = true;
+                    //}
                     imageIndex++;
                 }
 
@@ -305,6 +336,7 @@ namespace doc_du_lieu_excel
             }
 
         }
+
         static void Main(string[] args)
         {
             string dataPath = @"C:\Users\trinh\OneDrive\Desktop\";
@@ -329,7 +361,7 @@ namespace doc_du_lieu_excel
             //    }
             //    Console.Write("\n");
             //}
-
+            
         }
     }
 } 
